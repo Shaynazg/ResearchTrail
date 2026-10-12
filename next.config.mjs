@@ -3,6 +3,10 @@ const nextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // Send the home page (/) to the dashboard; proxy.js sends logged-out users on to /login
+  async redirects() {
+    return [{ source: "/", destination: "/dashboard", permanent: false }];
+  },
   turbopack: {
     rules: {
       "*.css": {
