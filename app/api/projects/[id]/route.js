@@ -1,15 +1,44 @@
 import { query } from "@/lib/db";
 import { getCurrentUser, unauthorized, forbidden } from "@/lib/auth";
-
-// Turn the [id] part of the URL into a number, or null if it is not one
-async function readProjectId(params) {
-  const { id } = await params;
-  const projectId = Number(id);
-  return Number.isInteger(projectId) && projectId > 0 ? projectId : null;
-}
+import { readId, getProjectForUser } from "@/lib/projects";
 
 function notFound() {
   return Response.json({ error: "Project not found." }, { status: 404 });
+}
+
+// GET /api/projects/:id
+// The project and its sources (with authors, tags and citation counts).
+// The owner and the admin can see it; canEdit is true only for the owner.
+export async function GET(request, { params }) {
+  const user = await getCurrentUser();
+  if (!user) return unauthorized();
+
+  const projectId = await readId(params);
+  if (!projectId) return notFound();
+
+  const project = await getProjectForUser(projectId, user);
+  if (!project) return notFound();
+
+  const sources = await query(
+    `SELECT s.source_id, s.parent_source_id, s.title, s.url, s.type,
+            s.publication_year, s.time_spent_min, s.visited_at,
+            (SELECT string_agg(a.author_name, ', ' ORDER BY sa.author_order)
+               FROM source_authors sa JOIN authors a ON a.author_id = sa.author_id
+              WHERE sa.source_id = s.source_id) AS authors,
+            (SELECT array_agg(t.name ORDER BY t.name)
+               FROM source_tags st JOIN tags t ON t.tag_id = st.tag_id
+              WHERE st.source_id = s.source_id) AS tags,
+            (SELECT COUNT(*)::int FROM citations c
+              WHERE c.citing_source_id = s.source_id) AS cites_count,
+            (SELECT COUNT(*)::int FROM citations c
+              WHERE c.cited_source_id = s.source_id) AS cited_by_count
+     FROM sources s
+     WHERE s.project_id = $1
+     ORDER BY s.visited_at DESC`,
+    [projectId]
+  );
+
+  return Response.json({ project, sources });
 }
 
 // PATCH /api/projects/:id  body: { status }
@@ -19,7 +48,7 @@ export async function PATCH(request, { params }) {
   if (!user) return unauthorized();
   if (user.role === "admin") return forbidden();
 
-  const projectId = await readProjectId(params);
+  const projectId = await readId(params);
   if (!projectId) return notFound();
 
   const body = await request.json().catch(() => ({}));
@@ -51,7 +80,7 @@ export async function DELETE(request, { params }) {
   if (!user) return unauthorized();
   if (user.role === "admin") return forbidden();
 
-  const projectId = await readProjectId(params);
+  const projectId = await readId(params);
   if (!projectId) return notFound();
 
   const rows = await query(
