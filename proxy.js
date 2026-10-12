@@ -17,5 +17,5 @@ export async function proxy(request) {
 
 // Pages that need a logged-in user
 export const config = {
-  matcher: ["/dashboard/:path*", "/projects/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/projects/:path*", "/sources/:path*", "/admin/:path*"],
 };

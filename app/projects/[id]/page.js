@@ -14,13 +14,31 @@ export default function ProjectPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
+  // Changing reloadKey makes the effect below fetch the project again
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // Load the project and its sources
   useEffect(() => {
     fetch(`/api/projects/${id}`).then(async (response) => {
       const body = await response.json();
       if (response.ok) setData(body);
       else setError(body.error);
     });
-  }, [id]);
+  }, [id, reloadKey]);
+
+  async function deleteSource(source) {
+    const sure = window.confirm(
+      `Delete "${source.title}"? Its citations are removed too. Sources that came from it move up one level in the trail.`
+    );
+    if (!sure) return;
+
+    const response = await fetch(`/api/sources/${source.source_id}`, { method: "DELETE" });
+    if (!response.ok) {
+      window.alert((await response.json()).error);
+      return;
+    }
+    setReloadKey((key) => key + 1);
+  }
 
   if (!user || (!data && !error)) {
     return <main className="min-h-screen bg-zinc-50 p-8 text-zinc-600">Loading...</main>;
@@ -75,6 +93,14 @@ export default function ProjectPage() {
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-700">{source.type}</span>
                   {source.publication_year && (
                     <span className="text-sm text-zinc-500">{source.publication_year}</span>
+                  )}
+                  {project.canEdit && (
+                    <span className="ml-auto flex gap-3 text-sm">
+                      <Link href={`/sources/${source.source_id}/edit`} className="hover:underline">Edit</Link>
+                      <button onClick={() => deleteSource(source)} className="text-red-700 hover:underline">
+                        Delete
+                      </button>
+                    </span>
                   )}
                 </div>
                 {source.authors && <p className="mt-1 text-sm text-zinc-600">{source.authors}</p>}
