@@ -6,7 +6,7 @@ const TYPES = ["paper", "article", "dataset", "website", "video", "book"];
 
 const inputClass = "mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2";
 
-// Form for adding (and later editing) a source.
+// Form for adding and editing a source.
 // sources  = the other sources in this project (for "came from" and "cites")
 // initial  = starting values when editing (empty when adding)
 // onSubmit = async function(data) that returns an error message, or null on success
