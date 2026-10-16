@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ResearchTrail
 
-## Getting Started
+ResearchTrail records how a piece of research unfolds. Each project holds the sources a researcher read (papers, articles, datasets, videos), the source that led to each one, which sources cite which, and who wrote them. The browse trail and the citation network are stored as two graphs in PostgreSQL, and pgvector adds similarity search over the sources.
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sign up and log in, with two roles: **researcher** and **admin**
+- Projects with live counts of sources, citations and reading time
+- Sources with authors in order, tags, the source they came from and the sources they cite
+- Every add or edit saved in one transaction, so a failed save leaves no partial data
+- Clear error messages for every database rule
+- Semantic search and similar sources using vector embeddings (in progress)
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Tech stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React, Tailwind CSS |
+| Backend | Next.js API routes |
+| Database | PostgreSQL 16 with pgvector |
+| Auth | bcrypt password hashes, signed session cookie |
 
-## Learn More
+## Database features
 
-To learn more about Next.js, take a look at the following resources:
+- 8 tables with primary keys, foreign keys, CHECK and UNIQUE constraints
+- Trigger that keeps each source's parent in the same project
+- Recursive function for the browse path of any source
+- View with per-project statistics
+- Indexes, including an HNSW index for vector search
+- Transactions for multi-table inserts, edits and deletes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Setup instructions will be added when the project is complete.
