@@ -7,7 +7,6 @@ import AppHeader from "@/components/AppHeader";
 import useCurrentUser from "@/components/useCurrentUser";
 
 // Project page: the project's details and a plain list of its sources.
-// (Your teammate adds filters and the browse tree here later.)
 export default function ProjectPage() {
   const { id } = useParams();
   const user = useCurrentUser();

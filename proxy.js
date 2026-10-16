@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken, SESSION_COOKIE } from "@/lib/auth";
 
 // Runs before every page listed in config.matcher below.
-// Not logged in -> sent to /login. Not an admin on /admin pages -> sent to /dashboard.
+// Logged-out users go to /login. Non-admins on /admin pages go to /dashboard.
 export async function proxy(request) {
   const user = await verifyToken(request.cookies.get(SESSION_COOKIE)?.value);
 
