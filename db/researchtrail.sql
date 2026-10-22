@@ -1,25 +1,19 @@
--- =====================================================================
 -- ResearchTrail : complete database script (DDL + DML)
 -- PostgreSQL 14+ with the pgvector extension
 -- Run: psql -U postgres -d researchtrail -f researchtrail.sql
 -- Re-running is safe: section 1 drops everything first.
 -- Demo password for all users: Demo@1234 (stored as a bcrypt hash)
--- =====================================================================
 
 \set ON_ERROR_STOP on
 
--- ---------------------------------------------------------------------
 -- 1. RESET (DROP)
--- ---------------------------------------------------------------------
 DROP TABLE IF EXISTS source_tags, source_authors, citations, tags,
                      authors, sources, projects, users CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS vector;    -- pgvector: vector type + <=> operator
 
 
--- ---------------------------------------------------------------------
 -- 2. TABLES (CREATE) - 5 entities + 3 many-to-many junction tables
--- ---------------------------------------------------------------------
 
 CREATE TABLE users (
     user_id        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -94,17 +88,12 @@ CREATE TABLE source_tags (
 );
 
 
--- ---------------------------------------------------------------------
 -- 3. ALTER: add the vector column
 -- 384 = size of all-MiniLM-L6-v2 embeddings of title + abstract,
 -- which the Next.js app generates.
--- ---------------------------------------------------------------------
 ALTER TABLE sources ADD COLUMN embedding vector(384);
 
-
--- ---------------------------------------------------------------------
 -- 4. INDEXES
--- ---------------------------------------------------------------------
 CREATE INDEX idx_sources_project ON sources (project_id);
 CREATE INDEX idx_sources_parent  ON sources (parent_source_id);      -- tree traversal
 CREATE INDEX idx_citations_cited ON citations (cited_source_id);     -- "cited by" lookups
@@ -112,9 +101,7 @@ CREATE INDEX idx_sources_embedding ON sources
     USING hnsw (embedding vector_cosine_ops);                        -- vector similarity search
 
 
--- ---------------------------------------------------------------------
 -- 5. TRIGGER: a parent source must be in the same project as its child
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION check_parent_project() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -133,9 +120,7 @@ BEFORE INSERT OR UPDATE OF parent_source_id ON sources
 FOR EACH ROW EXECUTE FUNCTION check_parent_project();
 
 
--- ---------------------------------------------------------------------
 -- 6. FUNCTION: browse path from the root to a source (recursive CTE)
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_browse_path(p_source INT)
 RETURNS TABLE (step INT, source_id INT, title VARCHAR)
 LANGUAGE sql AS $$
@@ -151,9 +136,7 @@ LANGUAGE sql AS $$
 $$;
 
 
--- ---------------------------------------------------------------------
 -- 7. VIEW: per-project statistics for the dashboard
--- ---------------------------------------------------------------------
 CREATE VIEW v_project_stats AS
 SELECT p.project_id, p.title, u.name AS owner, p.status,
        COUNT(s.source_id)                  AS source_count,
@@ -167,13 +150,9 @@ LEFT JOIN sources s ON s.project_id = p.project_id
 GROUP BY p.project_id, u.name;
 
 
--- =====================================================================
 -- DML
--- =====================================================================
 
--- ---------------------------------------------------------------------
 -- 8. SEED DATA (INSERT) - IDs are assigned 1, 2, 3... in insert order
--- ---------------------------------------------------------------------
 INSERT INTO users (name, email, password_hash, role, institution) VALUES
 ('Site Admin',  'admin@researchtrail.dev', '$2b$12$uhJQ5rRyeVPBIq8EJJJ18e6YMeH/o5WeyWGt7UhJePHJTidRWK7zC', 'admin',      NULL),             -- 1
 ('Ananya Rao',  'ananya.rao@pesu.edu',     '$2b$12$Ul0VRuzEW3p4Pog5jYgsb.vUgdx7X67Rt5mJENQt.p4R5xKaz2wgG', 'researcher', 'PES University'), -- 2
@@ -253,9 +232,7 @@ INSERT INTO citations (citing_source_id, cited_source_id) VALUES
 (10,11), (12,10), (12,11), (12,13), (13,11);
 
 
--- ---------------------------------------------------------------------
 -- 9. TRANSACTIONS
--- ---------------------------------------------------------------------
 -- 9a. COMMIT: a new source with its authors, tags and citation, all or nothing
 BEGIN;
 INSERT INTO sources (project_id, parent_source_id, title, url, abstract, publication_year, time_spent_min)
@@ -311,9 +288,7 @@ SET embedding = (
 -- INSERT INTO sources (project_id, parent_source_id, title) VALUES (2, 1, 'Wrong project');
 
 
--- ---------------------------------------------------------------------
 -- 11. SELECT QUERIES
--- ---------------------------------------------------------------------
 -- Q1 Dashboard (view)
 SELECT * FROM v_project_stats ORDER BY project_id;
 
