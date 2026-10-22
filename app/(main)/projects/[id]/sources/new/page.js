@@ -34,17 +34,17 @@ export default function NewSourcePage() {
   }
 
   if (!user || !data) {
-    return <main className="min-h-screen bg-zinc-50 p-8 text-zinc-600">Loading...</main>;
+    return <main className="min-h-screen p-8 text-muted">Loading...</main>;
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
+    <div className="min-h-screen">
       <AppHeader user={user} />
-      <main className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-        <Link href={`/projects/${id}`} className="text-sm text-zinc-600 hover:underline">
+      <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
+        <Link href={`/projects/${id}`} className="text-sm text-muted hover:text-brand">
           &larr; Back to {data.project.title}
         </Link>
-        <h1 className="text-2xl font-semibold">Add a source</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Add a source</h1>
         <SourceForm sources={data.sources} submitLabel="Save source" onSubmit={createSource} />
       </main>
     </div>
