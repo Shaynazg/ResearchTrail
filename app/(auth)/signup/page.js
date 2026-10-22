@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AuthLayout from "@/components/AuthLayout";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -37,45 +38,40 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 text-zinc-900">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">Create an account</h1>
+    <AuthLayout>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Create an account</h1>
 
         <label className="block">
           <span className="text-sm font-medium">Name</span>
-          <input name="name" required maxLength={100}
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="name" required maxLength={100} className="field" />
         </label>
 
         <label className="block">
           <span className="text-sm font-medium">Email</span>
-          <input name="email" type="email" required maxLength={255}
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="email" type="email" required maxLength={255} className="field" />
         </label>
 
         <label className="block">
           <span className="text-sm font-medium">Password (at least 8 characters)</span>
-          <input name="password" type="password" required minLength={8}
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="password" type="password" required minLength={8} className="field" />
         </label>
 
         <label className="block">
           <span className="text-sm font-medium">Institution (optional)</span>
-          <input name="institution" maxLength={150}
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="institution" maxLength={150} className="field" />
         </label>
 
-        {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
-        <button type="submit" disabled={loading}
-          className="w-full rounded bg-zinc-900 px-3 py-2 font-medium text-white disabled:opacity-50">
+        <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "Creating account..." : "Sign up"}
         </button>
 
-        <p className="text-center text-sm text-zinc-600">
-          Already have an account? <Link href="/login" className="font-medium underline">Log in</Link>
+        <p className="text-center text-sm text-muted">
+          Already have an account? <Link href="/login" className="font-medium text-brand hover:underline">Log in</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

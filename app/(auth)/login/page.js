@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AuthLayout from "@/components/AuthLayout";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,33 +36,30 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 text-zinc-900">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">Log in to ResearchTrail</h1>
+    <AuthLayout>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Log in</h1>
 
         <label className="block">
           <span className="text-sm font-medium">Email</span>
-          <input name="email" type="email" required
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="email" type="email" required className="field" />
         </label>
 
         <label className="block">
           <span className="text-sm font-medium">Password</span>
-          <input name="password" type="password" required
-            className="mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+          <input name="password" type="password" required className="field" />
         </label>
 
-        {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
-        <button type="submit" disabled={loading}
-          className="w-full rounded bg-zinc-900 px-3 py-2 font-medium text-white disabled:opacity-50">
+        <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "Logging in..." : "Log in"}
         </button>
 
-        <p className="text-center text-sm text-zinc-600">
-          No account? <Link href="/signup" className="font-medium underline">Sign up</Link>
+        <p className="text-center text-sm text-muted">
+          No account? <Link href="/signup" className="font-medium text-brand hover:underline">Sign up</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

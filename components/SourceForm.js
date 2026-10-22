@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const TYPES = ["paper", "article", "dataset", "website", "video", "book"];
 
-const inputClass = "mt-1 w-full rounded border border-zinc-300 bg-white px-3 py-2";
+const inputClass = "field";
 
 // Form for adding and editing a source.
 // sources  = the other sources in this project (for "came from" and "cites")
@@ -46,7 +46,7 @@ export default function SourceForm({ sources, initial = {}, submitLabel, onSubmi
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border border-zinc-200 bg-white p-6">
+    <form onSubmit={handleSubmit} className="panel space-y-5 p-6">
       <label className="block">
         <span className="text-sm font-medium">Title *</span>
         <input name="title" required maxLength={500} defaultValue={initial.title} className={inputClass} />
@@ -100,11 +100,11 @@ export default function SourceForm({ sources, initial = {}, submitLabel, onSubmi
       {sources.length > 0 && (
         <fieldset>
           <legend className="text-sm font-medium">Cites (sources in this project it references)</legend>
-          <div className="mt-1 max-h-48 space-y-1 overflow-y-auto rounded border border-zinc-300 p-3">
+          <div className="mt-1 max-h-48 space-y-1.5 overflow-y-auto rounded-lg border border-line p-3">
             {sources.map((source) => (
               <label key={source.source_id} className="flex items-start gap-2 text-sm">
                 <input type="checkbox" checked={cites.includes(source.source_id)}
-                  onChange={() => toggleCite(source.source_id)} className="mt-1" />
+                  onChange={() => toggleCite(source.source_id)} className="mt-1 accent-[var(--brand)]" />
                 {source.title}
               </label>
             ))}
@@ -122,10 +122,9 @@ export default function SourceForm({ sources, initial = {}, submitLabel, onSubmi
         <textarea name="note" rows={2} defaultValue={initial.note ?? ""} className={inputClass} />
       </label>
 
-      {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="error-box">{error}</p>}
 
-      <button type="submit" disabled={saving}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+      <button type="submit" disabled={saving} className="btn-primary">
         {saving ? "Saving..." : submitLabel}
       </button>
     </form>

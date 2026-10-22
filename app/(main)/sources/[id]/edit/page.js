@@ -46,24 +46,24 @@ export default function EditSourcePage() {
   }
 
   if (!user || (!source && !error)) {
-    return <main className="min-h-screen bg-zinc-50 p-8 text-zinc-600">Loading...</main>;
+    return <main className="min-h-screen p-8 text-muted">Loading...</main>;
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
+    <div className="min-h-screen">
       <AppHeader user={user} />
-      <main className="mx-auto max-w-3xl space-y-6 px-6 py-8">
+      <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
         {error ? (
           <>
-            <p className="text-red-700">{error}</p>
-            <Link href="/dashboard" className="text-sm underline">Back to dashboard</Link>
+            <p className="error-box">{error}</p>
+            <Link href="/dashboard" className="text-sm text-brand hover:underline">Back to projects</Link>
           </>
         ) : (
           <>
-            <Link href={`/projects/${source.project_id}`} className="text-sm text-zinc-600 hover:underline">
+            <Link href={`/projects/${source.project_id}`} className="text-sm text-muted hover:text-brand">
               &larr; Back to project
             </Link>
-            <h1 className="text-2xl font-semibold">Edit source</h1>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">Edit source</h1>
             <SourceForm sources={otherSources} initial={source} submitLabel="Save changes" onSubmit={saveSource} />
           </>
         )}

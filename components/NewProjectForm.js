@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Form to create a project. Calls onCreated() after a successful save.
-export default function NewProjectForm({ onCreated }) {
+export default function NewProjectForm({ onCreated, onCancel }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -34,21 +34,29 @@ export default function NewProjectForm({ onCreated }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-zinc-200 bg-white p-5">
-      <h2 className="font-semibold">New project</h2>
+    <form onSubmit={handleSubmit} className="panel space-y-3 p-5">
+      <h2 className="font-display text-lg font-semibold">New project</h2>
 
-      <input name="title" required maxLength={200} placeholder="Project title"
-        className="w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+      <label className="block">
+        <span className="text-sm font-medium">Title</span>
+        <input name="title" required maxLength={200} placeholder="e.g. Graph neural networks" className="field" />
+      </label>
 
-      <textarea name="description" rows={2} placeholder="What is this research about? (optional)"
-        className="w-full rounded border border-zinc-300 bg-white px-3 py-2" />
+      <label className="block">
+        <span className="text-sm font-medium">What is this research about? (optional)</span>
+        <textarea name="description" rows={2} className="field" />
+      </label>
 
-      {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="error-box">{error}</p>}
 
-      <button type="submit" disabled={saving}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-        {saving ? "Creating..." : "Create project"}
-      </button>
+      <div className="flex gap-2">
+        <button type="submit" disabled={saving} className="btn-primary">
+          {saving ? "Creating..." : "Create project"}
+        </button>
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="btn-secondary">Cancel</button>
+        )}
+      </div>
     </form>
   );
 }
