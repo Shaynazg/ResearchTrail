@@ -3,6 +3,7 @@ import { getCurrentUser, unauthorized } from "@/lib/auth";
 import { readId, getSourceForUser } from "@/lib/projects";
 import { dbErrorResponse } from "@/lib/dbErrors";
 import { parseSourceBody, saveSourceLinks } from "@/lib/sources";
+import { embedSource } from "@/lib/embeddings";
 
 function notFound() {
   return Response.json({ error: "Source not found." }, { status: 404 });
@@ -83,15 +84,20 @@ export async function PUT(request, { params }) {
     }
   }
 
+  
+
+    // New embedding for the edited title + abstract, computed before the transaction
+  const embedding = await embedSource(values);
+
   try {
     await withTransaction(async (client) => {
       await client.query(
         `UPDATE sources
          SET parent_source_id = $2, title = $3, url = $4, type = $5, abstract = $6,
-             note = $7, publication_year = $8, time_spent_min = $9
+             note = $7, publication_year = $8, time_spent_min = $9, embedding = $10::vector
          WHERE source_id = $1`,
         [sourceId, values.parentId, values.title, values.url, values.type,
-         values.abstract, values.note, values.year, values.minutes]
+         values.abstract, values.note, values.year, values.minutes, embedding]
       );
 
       // Replace the old links with the new ones
