@@ -103,7 +103,9 @@ export default function ProjectPage() {
             {sources.map((source) => (
               <li key={source.source_id} className="panel p-5">
                 <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-                  <h2 className="font-display text-lg font-semibold leading-snug">{source.title}</h2>
+                  <h2 className="font-display text-lg font-semibold leading-snug">
+                    <Link href={`/sources/${source.source_id}`} className="hover:text-brand">{source.title}</Link>
+                  </h2>
                   {project.canEdit && (
                     <span className="ml-auto flex gap-3 text-sm">
                       <Link href={`/sources/${source.source_id}/edit`} className="text-brand hover:underline">Edit</Link>
