@@ -3,6 +3,7 @@ import { getCurrentUser, unauthorized } from "@/lib/auth";
 import { readId, getProjectForUser } from "@/lib/projects";
 import { dbErrorResponse } from "@/lib/dbErrors";
 import { parseSourceBody, saveSourceLinks } from "@/lib/sources";
+import { embedSource } from "@/lib/embeddings";
 
 // POST /api/projects/:id/sources
 // body: { title, url, type, publication_year, time_spent_min, abstract, note,
@@ -22,18 +23,18 @@ export async function POST(request, { params }) {
 
   const { values, error } = parseSourceBody(await request.json().catch(() => ({})));
   if (error) return Response.json({ error }, { status: 400 });
-
+        const embedding = await embedSource(values);
   try {
     const sourceId = await withTransaction(async (client) => {
       // The trigger trg_parent_project rejects a parent from another project;
       // CHECK constraints reject a bad URL / year / type / minutes.
       const inserted = await client.query(
         `INSERT INTO sources (project_id, parent_source_id, title, url, type,
-                              abstract, note, publication_year, time_spent_min)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                              abstract, note, publication_year, time_spent_min,embedding)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::vector)
          RETURNING source_id`,
         [projectId, values.parentId, values.title, values.url, values.type,
-         values.abstract, values.note, values.year, values.minutes]
+         values.abstract, values.note, values.year, values.minutes,embedding]
       );
       const newId = inserted.rows[0].source_id;
 

@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "embeddings": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/backfill-embeddings.mjs"
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "@huggingface/transformers": "4.3.2",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.12",
     "next": "16.4.3",
