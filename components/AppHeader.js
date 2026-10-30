@@ -12,8 +12,9 @@ export default function AppHeader({ user }) {
           <span className="font-display text-xl font-semibold tracking-tight">ResearchTrail</span>
         </Link>
         <div className="flex items-center gap-3 text-sm">
+          <Link href="/search" className="font-medium hover:underline">Search</Link>
           <span className="hidden sm:inline">{user.name}</span>
-          <span className="rounded-full border border-[var(--header-line)] px-2.5 py-0.5 text-xs font-medium capitalize">
+          <span className="hidden rounded-full border border-[var(--header-line)] px-2.5 py-0.5 text-xs font-medium capitalize sm:inline">
             {user.role}
           </span>
           <LogoutButton />
