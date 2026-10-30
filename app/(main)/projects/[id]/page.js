@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import useCurrentUser from "@/components/useCurrentUser";
+import SourceFilters, { NO_FILTERS, matchesFilters } from "@/components/SourceFilters";
+import SourceTree from "@/components/SourceTree";
 
 const STATUS_PILL = {
   active: "bg-brand-soft text-brand",
@@ -12,12 +14,15 @@ const STATUS_PILL = {
   archived: "bg-line text-muted",
 };
 
-// Project page: the project's details and a plain list of its sources
+// Project page: the project's details and its sources, as a browse tree or a list,
+// with filters for type, tag and year
 export default function ProjectPage() {
   const { id } = useParams();
   const user = useCurrentUser();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [view, setView] = useState("tree");
+  const [filters, setFilters] = useState(NO_FILTERS);
 
   // Changing reloadKey makes the effect below fetch the project again
   const [reloadKey, setReloadKey] = useState(0);
@@ -67,6 +72,10 @@ export default function ProjectPage() {
   const titleById = Object.fromEntries(sources.map((source) => [source.source_id, source.title]));
   const totalMinutes = sources.reduce((sum, source) => sum + source.time_spent_min, 0);
 
+  const filtering = Object.values(filters).some((value) => value !== "");
+  const isMatch = (source) => matchesFilters(source, filters);
+  const shown = sources.filter(isMatch);
+
   return (
     <div className="min-h-screen">
       <AppHeader user={user} />
@@ -99,56 +108,86 @@ export default function ProjectPage() {
             No sources yet. Add the first thing you read for this project.
           </div>
         ) : (
-          <ul className="space-y-3">
-            {sources.map((source) => (
-              <li key={source.source_id} className="panel p-5">
-                <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-                  <h2 className="font-display text-lg font-semibold leading-snug">
-                    <Link href={`/sources/${source.source_id}`} className="hover:text-brand">{source.title}</Link>
-                  </h2>
-                  {project.canEdit && (
-                    <span className="ml-auto flex gap-3 text-sm">
-                      <Link href={`/sources/${source.source_id}/edit`} className="text-brand hover:underline">Edit</Link>
-                      <button onClick={() => deleteSource(source)} className="text-red-700 hover:underline">
-                        Delete
-                      </button>
-                    </span>
-                  )}
+          <>
+            <section className="panel space-y-4 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Switch between the browse tree and the list of cards */}
+                <div className="inline-flex rounded-lg border border-line p-0.5 text-sm" role="group" aria-label="View">
+                  {[["tree", "Tree"], ["list", "List"]].map(([value, label]) => (
+                    <button key={value} type="button" onClick={() => setView(value)} aria-pressed={view === value}
+                      className={`rounded-md px-3 py-1 font-medium ${view === value ? "bg-brand text-white" : "text-muted hover:text-ink"}`}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
-
-                <p className="mt-1 text-sm text-muted">
-                  <span className="font-medium capitalize text-ink">{source.type}</span>
-                  {source.publication_year && <span>, {source.publication_year}</span>}
-                  {source.authors && <span>. {source.authors}</span>}
+                <p className="text-sm text-muted">
+                  {filtering
+                    ? `Showing ${shown.length} of ${sources.length} sources${view === "tree" ? " (others faded)" : ""}`
+                    : view === "tree"
+                      ? "Each source sits under the one that led to it."
+                      : "Most recently read first."}
                 </p>
+              </div>
+              <SourceFilters sources={sources} filters={filters} onChange={setFilters} />
+            </section>
 
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
-                  <span>
-                    Came from:{" "}
-                    <span className="text-ink">
-                      {source.parent_source_id ? titleById[source.parent_source_id] : "start of a trail"}
-                    </span>
-                  </span>
-                  <span>Cites {source.cites_count}</span>
-                  <span>Cited by {source.cited_by_count}</span>
-                  <span>{source.time_spent_min} min</span>
-                  {source.url && (
-                    <a href={source.url} target="_blank" rel="noreferrer" className="text-brand hover:underline">
-                      Open link
-                    </a>
-                  )}
-                </div>
+            {view === "tree" ? (
+              <SourceTree sources={sources} isMatch={isMatch} filtering={filtering} />
+            ) : shown.length === 0 ? (
+              <div className="panel p-8 text-center text-muted">No sources match these filters.</div>
+            ) : (
+              <ul className="space-y-3">
+                {shown.map((source) => (
+                  <li key={source.source_id} className="panel p-5">
+                    <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
+                      <h2 className="font-display text-lg font-semibold leading-snug">
+                        <Link href={`/sources/${source.source_id}`} className="hover:text-brand">{source.title}</Link>
+                      </h2>
+                      {project.canEdit && (
+                        <span className="ml-auto flex gap-3 text-sm">
+                          <Link href={`/sources/${source.source_id}/edit`} className="text-brand hover:underline">Edit</Link>
+                          <button onClick={() => deleteSource(source)} className="text-red-700 hover:underline">
+                            Delete
+                          </button>
+                        </span>
+                      )}
+                    </div>
 
-                {source.tags && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {source.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+                    <p className="mt-1 text-sm text-muted">
+                      <span className="font-medium capitalize text-ink">{source.type}</span>
+                      {source.publication_year && <span>, {source.publication_year}</span>}
+                      {source.authors && <span>. {source.authors}</span>}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
+                      <span>
+                        Came from:{" "}
+                        <span className="text-ink">
+                          {source.parent_source_id ? titleById[source.parent_source_id] : "start of a trail"}
+                        </span>
+                      </span>
+                      <span>Cites {source.cites_count}</span>
+                      <span>Cited by {source.cited_by_count}</span>
+                      <span>{source.time_spent_min} min</span>
+                      {source.url && (
+                        <a href={source.url} target="_blank" rel="noreferrer" className="text-brand hover:underline">
+                          Open link
+                        </a>
+                      )}
+                    </div>
+
+                    {source.tags && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {source.tags.map((tag) => (
+                          <span key={tag} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs text-brand">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </main>
     </div>
