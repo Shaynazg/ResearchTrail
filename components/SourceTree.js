@@ -26,8 +26,9 @@ function buildTree(sources) {
   return { roots, childrenOf };
 }
 
-// One source and, indented below it, the sources that came from it
-function TreeNode({ source, childrenOf, isMatch, filtering }) {
+// One source and, indented below it, the sources that came from it.
+// The project owner also gets Edit and Delete links on each row.
+function TreeNode({ source, childrenOf, isMatch, filtering, canEdit, onDelete }) {
   const children = childrenOf.get(source.source_id) ?? [];
   const faded = filtering && !isMatch(source);
 
@@ -40,7 +41,7 @@ function TreeNode({ source, childrenOf, isMatch, filtering }) {
           }`}
           aria-hidden="true"
         />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <Link href={`/sources/${source.source_id}`} className="font-medium hover:text-brand hover:underline">
             {source.title}
           </Link>
@@ -49,13 +50,19 @@ function TreeNode({ source, childrenOf, isMatch, filtering }) {
             {source.cited_by_count > 0 && `, cited by ${source.cited_by_count}`}
           </span>
         </div>
+        {canEdit && (
+          <span className="flex shrink-0 items-center gap-3 self-start whitespace-nowrap pt-0.5 text-sm leading-5">
+            <Link href={`/sources/${source.source_id}/edit`} className="text-brand hover:underline">Edit</Link>
+            <button onClick={() => onDelete(source)} className="text-red-700 hover:underline">Delete</button>
+          </span>
+        )}
       </div>
 
       {children.length > 0 && (
         <ul className="ml-[4px] border-l border-line pl-5">
           {children.map((child) => (
             <TreeNode key={child.source_id} source={child} childrenOf={childrenOf}
-              isMatch={isMatch} filtering={filtering} />
+              isMatch={isMatch} filtering={filtering} canEdit={canEdit} onDelete={onDelete} />
           ))}
         </ul>
       )}
@@ -66,14 +73,15 @@ function TreeNode({ source, childrenOf, isMatch, filtering }) {
 // The browse tree: every trail in the project as an indented outline.
 // While filtering, every source stays in place but the ones that do not match are faded,
 // so it is still clear where the matches sit in the trail.
-export default function SourceTree({ sources, isMatch, filtering }) {
+export default function SourceTree({ sources, isMatch, filtering, canEdit, onDelete }) {
   const { roots, childrenOf } = buildTree(sources);
 
   return (
     <div className="panel space-y-4 p-5">
       {roots.map((root) => (
         <ul key={root.source_id}>
-          <TreeNode source={root} childrenOf={childrenOf} isMatch={isMatch} filtering={filtering} />
+          <TreeNode source={root} childrenOf={childrenOf} isMatch={isMatch} filtering={filtering}
+            canEdit={canEdit} onDelete={onDelete} />
         </ul>
       ))}
     </div>
