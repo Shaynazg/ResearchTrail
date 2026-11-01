@@ -132,7 +132,8 @@ export default function ProjectPage() {
             </section>
 
             {view === "tree" ? (
-              <SourceTree sources={sources} isMatch={isMatch} filtering={filtering} />
+              <SourceTree sources={sources} isMatch={isMatch} filtering={filtering}
+                canEdit={project.canEdit} onDelete={deleteSource} />
             ) : shown.length === 0 ? (
               <div className="panel p-8 text-center text-muted">No sources match these filters.</div>
             ) : (

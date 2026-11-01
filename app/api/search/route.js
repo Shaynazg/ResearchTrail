@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { getCurrentUser, unauthorized } from "@/lib/auth";
 import { embedText, toVector } from "@/lib/embeddings";
+import { MAX_INT } from "@/lib/projects";
 
 const TYPES = ["paper", "article", "dataset", "website", "video", "book"];
 
@@ -32,6 +33,9 @@ export async function GET(request) {
   if (type && !TYPES.includes(type)) return Response.json({ error: "Unknown type." }, { status: 400 });
   if ([projectId, fromYear, toYear].some(Number.isNaN)) {
     return Response.json({ error: "Project and years must be numbers." }, { status: 400 });
+  }
+  if ([projectId, fromYear, toYear].some((number) => number !== null && Math.abs(number) > MAX_INT)) {
+    return Response.json({ error: "One of the numbers is too large." }, { status: 400 });
   }
 
   // Turn the search text into a vector (the slow part)

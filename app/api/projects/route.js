@@ -53,6 +53,10 @@ export async function POST(request) {
     if (error.code === "22001") {
       return Response.json({ error: "Project title is too long (max 200 characters)." }, { status: 400 });
     }
+    // The account was deleted by the admin, but its login cookie is still valid
+    if (error.code === "23503") {
+      return Response.json({ error: "This account no longer exists. Please log in again." }, { status: 401 });
+    }
     throw error;
   }
 }

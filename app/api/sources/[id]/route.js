@@ -84,9 +84,8 @@ export async function PUT(request, { params }) {
     }
   }
 
-  
-
-    // New embedding for the edited title + abstract, computed before the transaction
+  // New embedding for the edited title + abstract, computed before the transaction.
+  // If the model cannot load it is null, and COALESCE below keeps the old embedding.
   const embedding = await embedSource(values);
 
   try {
@@ -94,7 +93,8 @@ export async function PUT(request, { params }) {
       await client.query(
         `UPDATE sources
          SET parent_source_id = $2, title = $3, url = $4, type = $5, abstract = $6,
-             note = $7, publication_year = $8, time_spent_min = $9, embedding = $10::vector
+             note = $7, publication_year = $8, time_spent_min = $9,
+             embedding = COALESCE($10::vector, embedding)
          WHERE source_id = $1`,
         [sourceId, values.parentId, values.title, values.url, values.type,
          values.abstract, values.note, values.year, values.minutes, embedding]

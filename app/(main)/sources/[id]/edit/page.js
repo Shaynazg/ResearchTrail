@@ -41,7 +41,7 @@ export default function EditSourcePage() {
       body: JSON.stringify(values),
     });
     if (!response.ok) return (await response.json()).error;
-    router.push(`/projects/${source.project_id}`);
+    router.push(`/sources/${id}`);
     return null;
   }
 
