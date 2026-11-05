@@ -14,6 +14,7 @@ export default function EditSourcePage() {
   const user = useCurrentUser();
   const [source, setSource] = useState(null);
   const [otherSources, setOtherSources] = useState([]);
+  const [parentOptions, setParentOptions] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,6 +29,10 @@ export default function EditSourcePage() {
       const projectResponse = await fetch(`/api/projects/${body.source.project_id}`);
       const projectBody = await projectResponse.json();
       setOtherSources(projectBody.sources.filter((other) => other.source_id !== body.source.source_id));
+      // Sources from all the user's projects, for the "came from" field
+      const allResponse = await fetch("/api/sources");
+      const allBody = await allResponse.json();
+      setParentOptions(allBody.sources.filter((other) => other.source_id !== body.source.source_id));
       setSource(body.source);
     }
     load();
@@ -64,7 +69,8 @@ export default function EditSourcePage() {
               &larr; Back to project
             </Link>
             <h1 className="font-display text-3xl font-semibold tracking-tight">Edit source</h1>
-            <SourceForm sources={otherSources} initial={source} submitLabel="Save changes" onSubmit={saveSource} />
+            <SourceForm sources={otherSources} parentOptions={parentOptions} projectId={source.project_id} initial={source}
+              submitLabel="Save changes" onSubmit={saveSource} />
           </>
         )}
       </main>

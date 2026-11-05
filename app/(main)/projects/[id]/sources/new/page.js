@@ -13,11 +13,15 @@ export default function NewSourcePage() {
   const router = useRouter();
   const user = useCurrentUser();
   const [data, setData] = useState(null);
+  const [parentOptions, setParentOptions] = useState([]);
 
-  // Load the project's existing sources for the "came from" and "cites" fields
+  // Load the project's sources for "cites", and sources from all projects for "came from"
   useEffect(() => {
     fetch(`/api/projects/${id}`).then(async (response) => {
       if (response.ok) setData(await response.json());
+    });
+    fetch("/api/sources").then(async (response) => {
+      if (response.ok) setParentOptions((await response.json()).sources);
     });
   }, [id]);
 
@@ -45,7 +49,8 @@ export default function NewSourcePage() {
           &larr; Back to {data.project.title}
         </Link>
         <h1 className="font-display text-3xl font-semibold tracking-tight">Add a source</h1>
-        <SourceForm sources={data.sources} submitLabel="Save source" onSubmit={createSource} />
+        <SourceForm sources={data.sources} parentOptions={parentOptions} projectId={id}
+          submitLabel="Save source" onSubmit={createSource} />
       </main>
     </div>
   );
