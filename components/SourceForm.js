@@ -7,10 +7,24 @@ const TYPES = ["paper", "article", "dataset", "website", "video", "book"];
 const inputClass = "field";
 
 // Form for adding and editing a source.
-// sources  = the other sources in this project (for "came from" and "cites")
-// initial  = starting values when editing (empty when adding)
-// onSubmit = async function(data) that returns an error message, or null on success
-export default function SourceForm({ sources, initial = {}, submitLabel, onSubmit }) {
+// sources       = the other sources in this project (for "cites")
+// parentOptions = sources from all the user's projects, with project_title (for "came from")
+// projectId     = the project this source belongs to; its group is listed first
+// initial       = starting values when editing (empty when adding)
+// onSubmit      = async function(data) that returns an error message, or null on success
+export default function SourceForm({ sources, parentOptions = sources, projectId, initial = {}, submitLabel, onSubmit }) {
+  // Group the "came from" choices by project, this project first
+  const parentGroups = [];
+  for (const option of parentOptions) {
+    let group = parentGroups.find((item) => item.projectId === option.project_id);
+    if (!group) {
+      group = { projectId: option.project_id, name: option.project_title ?? "This project", options: [] };
+      parentGroups.push(group);
+    }
+    group.options.push(option);
+  }
+  parentGroups.sort((a, b) => (b.projectId === Number(projectId)) - (a.projectId === Number(projectId)));
+
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [cites, setCites] = useState(initial.cites ?? []);
@@ -91,8 +105,12 @@ export default function SourceForm({ sources, initial = {}, submitLabel, onSubmi
         <span className="text-sm font-medium">Came from (the source that led you here)</span>
         <select name="parent_source_id" defaultValue={initial.parent_source_id ?? ""} className={inputClass}>
           <option value="">None: this starts a new trail</option>
-          {sources.map((source) => (
-            <option key={source.source_id} value={source.source_id}>{source.title}</option>
+          {parentGroups.map((group) => (
+            <optgroup key={group.projectId ?? group.name} label={group.name}>
+              {group.options.map((source) => (
+                <option key={source.source_id} value={source.source_id}>{source.title}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </label>
